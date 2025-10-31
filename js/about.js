@@ -7,17 +7,28 @@ function parseTweets(runkeeper_tweets) {
 		return;
 	}
 
-	tweet_array = runkeeper_tweets.map(function(tweet) {
-		return new Tweet(tweet.text, tweet.created_at);
-	});
-	
+	tweet_array = runkeeper_tweets;
+
 	//This line modifies the DOM, searching for the tag with the numberTweets ID and updating the text.
 	//It works correctly, your task is to update the text of the other tags in the HTML file!
-	document.getElementById('numberTweets').innerText = tweet_array.length;	
+	const byId = (id, value) => {
+		const element = document.getElementById(id);
+		if (element){
+			element.innerText = value;
+		}
+	};
 
-	const sorted = tweet_array.slice().sort((a,b) => a.time - b.time);
-	const first = sorted[0].time;
-	const last = sorted[sorted.length - 1].time;
+	const setAll = (selector, value) => {
+		document.querySelectorAll(selector)
+				.forEach(element => (element.innerText = value));
+	};
+	
+	byId("numberTweets", tweet_array.length);	
+
+	const sorted = tweet_array.slice()
+							  .sort((a,b) => new Date(a.time || a.created_at) - new Date(b.time || b.created_at));
+	const first = new Date(sorted[0].time || sorted[0].created_at);
+	const last = new Date(sorted[sorted.length - 1].time || sorted[sorted.length -1].created_at);
 
 	const formatDate = date => date.toLocaleDateString(undefined, {
 			weekday: "short",
@@ -26,13 +37,13 @@ function parseTweets(runkeeper_tweets) {
 			year: "numeric"
 		});
 
-	document.getElementById("firstDate").innerText = formatDate(first);
-	document.getElementById("LastDate").innerText = formatDate(last);
+	byId("firstDate", formatDate(first));
+	byId("lastDate", formatDate(last));
 
 	let complete = 0;
-	live = 0;
-	achievement = 0;
-	miscellaneous = 0;
+	let live = 0;
+	let achievement = 0;
+	let miscellaneous = 0;
 
 	for (let t of tweet_array){
 		if (t.source == "completed_event") {
@@ -44,19 +55,29 @@ function parseTweets(runkeeper_tweets) {
 		else if (t.source == "achievement") {
 			achievement++;
 		}
-		else misc++;
+		else miscellaneous++;
 	}
 	
-	document.getElementById("completedEvents").innerText = completed;
-	document.getElementById("liveEvents").innerText = live;
-	document.getElementById("achievements").innerText = achievement;
-	document.getElementById("miscellaneous").innerText = misc;
+	const total = tweet_array.length;
+	const percent = (n) => ((n / total) * 100).toFixed(2) + "%";
 
-	const completedTweets = tweet_array.filter(t => t.source === "completed_event");
+	setAll(".completedEvents", String(complete));
+	setAll(".liveEvents", String(live));
+	setAll(".achievements", String(achievement));
+	setAll(".miscellaneous", String(miscellaneous));
+
+	setAll(".completedEventsPct", percent(completed));
+	setAll(".liveEventsPct", percent(live));
+	setAll(".achievementsPct", percent(achievement));
+	setAll(".miscellaneousPct", percent(miscellaneous));
+
+	const completedTweets = tweet_array.filter(t => t.source == "completed_event");
 	const writtenTweets = completedTweets.filter(t => t.written);
-	const percent = completedTweets.length > 0 ? (writtenTweets.length / completedTweets.length) * 100 : 0;
+	const written = writtenTweets.length;
+	const writtenPct = completedTweets.length > 0 ? ((written / completedTweets.length) * 100).toFixed(2) + "%" : "0.00%";
 
-  document.getElementById("writtenPercent").innerText = percent.toFixed(2) + "%";
+	setAll(".written", String(written));
+	setAll(".writtenPct", writtenPct);
 }
 
 //Wait for the DOM to load
