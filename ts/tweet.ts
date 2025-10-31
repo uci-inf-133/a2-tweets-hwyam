@@ -24,15 +24,15 @@ class Tweet {
         //TODO: identify whether the source is a live event, an achievement, a completed event, or miscellaneous.
         const t = this.text.toLowerCase().trim();
         if (t.startsWith("just completed a") || t.startsWith("just finished a") || t.startsWith("just posted a")){
-            return "complete";
+            return "completed_event";
         }
         if (t.includes("currently") || t.includes("right now")){
-            return "live event";
+            return "live_event";
         }
         if (t.includes("achieved") || t.includes("record")){
             return "achievement"
         }
-        return "mischellaneous";
+        return "miscellaneous";
     }
 
     //returns a boolean, whether the text includes any content written by the person tweeting.
