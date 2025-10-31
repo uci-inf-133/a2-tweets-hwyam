@@ -19,8 +19,7 @@ function parseTweets(runkeeper_tweets) {
 	const first = sorted[0].time;
 	const last = sorted[sorted.length - 1].time;
 
-	const formatDate = date =>
-		date.toLocaleDateString(undefined, {
+	const formatDate = date => date.toLocaleDateString(undefined, {
 			weekday: "short",
 			month: "short",
 			day: "numeric",
