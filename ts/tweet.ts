@@ -13,7 +13,7 @@ class Tweet {
                     .replace(/#runkeeper/gi,"")
                     .replace(/with\s+@runkeeper\.?/gi, "")
                     .replace(/check it out!?/gi, "")
-                    .replace(/just\s+(completed | posted)\s+a/gi, "")
+                    .replace(/just\s+(completed|posted)\s+a/gi, "")
                     .replace(/\s+/g, " ")
                     .trim();
         return s;
@@ -23,13 +23,13 @@ class Tweet {
     get source():string {
         //TODO: identify whether the source is a live event, an achievement, a completed event, or miscellaneous.
         const t = this.text.toLowerCase().trim();
-        if (t.startsWith("just completed a") || t.startsWith("just finished a") || t.startsWith("just posted a")){
+        if (/just\s+(completed|finished|posted)\s+a/i.test(t)){
             return "completed_event";
         }
-        if (t.includes("currently") || t.includes("right now")){
+        if (t.indexOf("currently") !== -1 || t.indexOf("right now") !== -1){
             return "live_event";
         }
-        if (t.includes("achieved") || t.includes("record")){
+        if (/(achieved|achievement|personal record|record|new record)/i.test(t)){
             return "achievement"
         }
         return "miscellaneous";

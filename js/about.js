@@ -7,7 +7,7 @@ function parseTweets(runkeeper_tweets) {
 		return;
 	}
 
-	tweet_array = runkeeper_tweets;
+	tweet_array = runkeeper_tweets.map(t=> (t instanceof Tweet) ? t: new Tweet(t.text ||t.tweet, t.time || t.created_at));
 
 	//This line modifies the DOM, searching for the tag with the numberTweets ID and updating the text.
 	//It works correctly, your task is to update the text of the other tags in the HTML file!
@@ -22,7 +22,7 @@ function parseTweets(runkeeper_tweets) {
 		document.querySelectorAll(selector)
 				.forEach(element => (element.innerText = value));
 	};
-	
+
 	byId("numberTweets", tweet_array.length);	
 
 	const sorted = tweet_array.slice()
@@ -66,7 +66,7 @@ function parseTweets(runkeeper_tweets) {
 	setAll(".achievements", String(achievement));
 	setAll(".miscellaneous", String(miscellaneous));
 
-	setAll(".completedEventsPct", percent(completed));
+	setAll(".completedEventsPct", percent(complete));
 	setAll(".liveEventsPct", percent(live));
 	setAll(".achievementsPct", percent(achievement));
 	setAll(".miscellaneousPct", percent(miscellaneous));
