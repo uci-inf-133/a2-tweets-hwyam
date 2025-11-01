@@ -62,20 +62,23 @@ class Tweet {
         }
 
         let activity = content[3];
-        if (activity.includes("running")) {
+        if (activity.includes("run")) {
             return "run";
         }
-        if (activity == "walking") {
+        if (activity.includes("walk")) {
             return "walk";
         }
-        if (activity == "swimming") {
+        if (activity.includes("swim")) {
             return "swim";
         }
-        if (activity.includes("biking") || (activity.includes("cycling")) ){
+        if (activity.includes("bik") || (activity.includes("cycl")) ){
             return "bike";
         }
+        if (activity.includes("hike")) {
+            return "hike";
+        }
 
-        return activity.charAt(0).toUpperCase() + activity.substring(1);
+        return "other";
     }
 
     get distance():number {

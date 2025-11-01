@@ -11,6 +11,11 @@ function parseTweets(runkeeper_tweets) {
 		return new Tweet(tweet.text, tweet.created_at);
 	});
 
+	const setText = (id, val) => {
+   		const el = document.getElementById(id);
+    	if (el) el.innerText = String(val);
+	};
+
 	//TODO: create a new array or manipulate tweet_array to create a graph of the number of tweets containing each type of activity.
 
 	const dayName = d => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
@@ -29,30 +34,83 @@ function parseTweets(runkeeper_tweets) {
 
 	const countsMap = {};
 	for (const r of rows) countsMap[r.activityType] = (countsMap[r.activityType] || 0) +1;
-	const counts = Object.current(countsMap)
+	const counts = Object.entries(countsMap)
 						 .map(([activityType, count]) => ({activityType, count}))
 						 .sort((a,b) => b.count - a.count)
+
+
+	//TODO: Add mark and encoding
+	const topThree = counts.slice(0, 3).map(d => d.activityType);
+	const topRows = rows.filter(r => topThree.includes(r.activityType));
 
 	activity_vis_spec = {
 	  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
 	  description: "A graph of the number of Tweets containing each type of activity.",
 	  data: {
 	    values: counts
-	  },
-	  //TODO: Add mark and encoding
+	  },	  
+	  
 	  mark:{type: "bar"},
 	  encoding:{
 		x:{field:"activityType", type:"nominal", sort: "-y", title:"Activity"},
-		y:{field:"count", type:"quan", title:"Tweets"},
-		tooltip: [{field: "activityType"}, {field:count}]
+		y:{field:"count", type:"quantitative", title:"Tweets"},
+		tooltip: [{field: "activityType", title: "Activity"},
+				  {field: "count", type:"quantitative", title: "Tweets"}]
 	  }
 	};
+
 	vegaEmbed('#activityVis', activity_vis_spec, {actions:false});
+
+	const distance_vis_agg_spec = {
+	  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+	  description: "Mean distance (top 3 activities)",
+	  data: {
+	    values: topRows
+	  },	  
+	  
+	  mark:{type: "line", point: true},
+	  encoding:{
+		x:{field:"day", type:"ordinal", sort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], title:"Day of week"},
+		y:{aggregate:"mean", field:"distance", type:"quantitative", title:"Mean (mi)"},
+		color:{field:"activityType", type:"nominal", title:"Activity"},
+		tooltip: [{field: "activityType", title: "Activity"},
+				  {field: "day", title: "Day"},
+				  {aggregate: "mean", field:"distance", type: "quantitative", title:"Mean (mi)"}]
+	  }
+	};
+
+	vegaEmbed("#distanceVisAggregated", distance_vis_agg_spec, {actions: false});
+
+	const rawDiv = document.getElementById("distanceVis");
+	const aggDiv = document.getElementById("distanceVisAggregated");
+	const btn = document.getElementById("aggregate");
+
+	rawDiv.style.display = "block";
+	aggDiv.style.display = "none";
+	btn.textContent = "Show means";
+
+	btn.addEventListener("click", () => {
+		if (rawDiv.style.display === "block") {
+			rawDiv.style.display = "none";
+			aggDiv.style.display = "block";
+			btn.textContent = "Show all activities";
+		} else {
+			rawDiv.style.display = "block";
+			aggDiv.style.display = "none";
+			btn.textContent = "Show means";
+		} 
+	});
+
+	const numOfType = Object.keys(countsMap).length;
+	setText("numberActivities", numOfType);
+
+	const [a1, a2, a3] = [counts[0], counts[1], counts[2]] || [];
+	setText("firstMost", a1 ? a1.activityType: "N/A");
+	setText("secondMost", a2 ? a2.activityType: "N/A");
+	setText("thirdMost", a3 ? a3.activityType: "N/A");
 
 	//TODO: create the visualizations which group the three most-tweeted activities by the day of the week.
 	//Use those visualizations to answer the questions about which activities tended to be longest and when.
-	const topThree = counts.slice(0, 3).map(d => d.activityType);
-	const topRows = rows.filter(r => top3.includes(r.activityType));
 	const distance_vis_spec = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     description: "Distances by day of week for the top 3 activities",
@@ -67,27 +125,23 @@ function parseTweets(runkeeper_tweets) {
 	};
 
 	vegaEmbed("#distanceVis", distance_vis_spec, {actions: false});
+
+
 	const aggByActivity = {};
-  	for (const r of rows) {
+  	for (const r of topRows) {
     	if (!aggByActivity[r.activityType]) {
 			aggByActivity[r.activityType] = { sum: 0, n: 0 };
 		}
 		aggByActivity[r.activityType].sum += r.distance;
 		aggByActivity[r.activityType].n += 1;
 		}
-	}
-  	const means = Object.current(aggByActivity)
+
+  	const means = Object.entries(aggByActivity)
     					.map(([activityType, v]) => ({ activityType, mean: v.sum / v.n }))
     					.sort((a, b) => b.mean - a.mean);
 
   	const longest = means[0] ? means[0].activityType : "N/A";
   	const shortest = means[means.length - 1] ? means[means.length - 1].activityType : "N/A";
-	
-	const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) {
-		el.innerText = String(val);
-	};
 
 	setText("longestActivityType",longest);
 	setText("shortestActivityType",shortest);
@@ -150,7 +204,7 @@ function parseTweets(runkeeper_tweets) {
 		result = "weekdays";
 	}
 
-	setText("result", result);
+	setText("weekdayOrWeekendLonger", result);
 }
 
 //Wait for the DOM to load
